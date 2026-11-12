@@ -23,6 +23,10 @@ const props = defineProps({
     type: Array,
     default: () => [],
   },
+  index: {
+    type: Number,
+    default: 0,
+  },
 })
 
 const emit = defineEmits(['close'])
@@ -37,6 +41,12 @@ const reducedMotion = ref(false)
 const count = computed(() => props.slides.length)
 const setWidth = computed(() => count.value * PITCH)
 const middleIndex = computed(() => Math.floor(repeats.value / 2) * count.value)
+const startIndex = computed(() => {
+  const total = count.value
+  if (!total) return 0
+  const index = Number(props.index) || 0
+  return ((index % total) + total) % total
+})
 
 const hover = { scale: 1.02, transition: softSpring }
 
@@ -98,7 +108,7 @@ function springTo(target) {
 }
 
 function baseX(width = viewW.value) {
-  return width / 2 - PHOTO_W / 2 - middleIndex.value * PITCH
+  return width / 2 - PHOTO_W / 2 - (middleIndex.value + startIndex.value) * PITCH
 }
 
 function wrap() {
@@ -230,7 +240,7 @@ watch(
     if (!span) return
     const needed = Math.max(3, Math.ceil((width + span * 2) / span) + 1)
     repeats.value = needed
-    x.value = width / 2 - PHOTO_W / 2 - Math.floor(needed / 2) * count.value * PITCH
+    x.value = baseX(width)
   },
 )
 
